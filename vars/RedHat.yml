@@ -4,3 +4,4 @@ pacemaker_packages:
   - resource-agents
   - pcs
 
+pacemaker_service: pacemaker

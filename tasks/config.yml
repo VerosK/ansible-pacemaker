@@ -1,2 +1,11 @@
 ---
-
+- name: Enabling/Disabling Pacemaker properties
+  pcs_property:
+    name: '{{ item.name | lower }}'
+    value: '{{ item.value | lower }}'
+  with_items:
+    - "{{ pacemaker_properties }}"
+  run_once: true
+  tags:
+    - pacemaker
+    - pacemaker-properties

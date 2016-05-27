@@ -1,6 +1,8 @@
 ---
 - name: Ensure yum packages
-  yum: pkg={{ item }} state={{ pacemaker_package_state }}
+  yum:
+    pkg: '{{ item }}'
+    state: '{{ pacemaker_package_state }}'
   tags:
     - pacemaker
     - setup

@@ -17,8 +17,8 @@
 - include: setup-RedHat.yml
   when: "ansible_os_family == 'RedHat'"
 
-# Common configuration tasks
-- include: config.yml
-
 # Common service tasks
 - include: service.yml
+
+# Common configuration tasks
+- include: config.yml

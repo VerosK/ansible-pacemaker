@@ -2,3 +2,5 @@
 pacemaker_service_enabled: yes
 pacemaker_service_state: started
 pacemaker_package_state: present
+
+pacemaker_service: pacemaker
