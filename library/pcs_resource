@@ -156,11 +156,8 @@ def main():
         # Process meta.
         if module.params.has_key('meta') and module.params['meta']:
             cmd += ' meta %(meta)s'
-            meta = []
-            for op in module.params['meta']:
-                op['options'] = ' '.join(['%s="%s"' % (key, value) for (key, value) in op['options'].items()])
-                meta.append('%(options)s' % op)
-            module.params['meta'] = ' '.join(meta)
+            meta = module.params['meta']
+            module.params['meta'] = ' '.join(['%s="%s"' % (key, value) for (key, value) in meta.items()])
 
         if module.params['disable']:
             cmd += ' --disable'
