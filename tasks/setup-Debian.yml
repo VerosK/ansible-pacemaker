@@ -6,5 +6,5 @@
   tags:
     - pacemaker
     - setup
-  with_items: pacemaker_packages
+  with_items: '{{ pacemaker_packages }}'
 
