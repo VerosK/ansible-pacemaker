@@ -3,6 +3,7 @@
 
 # 2016 - Gaetan trellu (goldyfruit) - <gaetan.trellu@incloudus.com>
 # 2014 - Jonathan Araña Cruz (jonhattan) - <onhattan@faita.net>
+# 2016 - Veros Kaplan (verosk) verosk@users.github.com
 
 DOCUMENTATION = '''
 ---
@@ -132,7 +133,7 @@ def main():
                 if module.params['node'] == 'yes' and module.params['nodename']:
                     cmd = 'pcs property set --node %(nodename)s %(name)s=%(value)s' % module.params
                 elif module.params['node'] == 'yes' and  module.params['node'] and module.params['force'] == 'yes':
-                    cmd = 'pcs property set --node %(name)s=%(value)s --force' % module.params
+                    cmd = 'pcs property set --node %(nodename)s %(name)s=%(value)s --force' % module.params
                 elif module.params['force'] == 'yes':
                     cmd = 'pcs property set %(name)s=%(value)s --force' % module.params
                 else:
