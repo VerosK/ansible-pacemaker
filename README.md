@@ -4,8 +4,8 @@ pacemaker
 Ansible role to configure Pacemaker and pacemaker resources.
  
 Based on https://github.com/sbitio/ansible-pacemaker work, which was originally
-developed on CentOS 6 with Pacemaker version 1.1.10. Current version updated
-and tested Ubuntu xenial. More distributions are going to be tested.
+developed on CentOS 6 with Pacemaker version 1.1.10. This version is updated
+and tested on Ubuntu xenial.
 
 This role provides several [modules](library) to manage Pacemaker configuration
 with `pcs` tool. 
@@ -34,8 +34,6 @@ Author Information
 
 Original author: Jonathan Araña Cruz - SB IT Media, S.L.
 
-Another original author: ..*[]:
- 
 Last author: [Veros Kaplan](https://github.com/verosk/)
-
+Update to xenial sponsored by [Twisto.cz](https://twisto.cz/)
 
