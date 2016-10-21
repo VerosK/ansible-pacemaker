@@ -85,9 +85,9 @@ def main():
             name       = dict(required=False, default=None, aliases=['resource_id']),
             state      = dict(required=False, default='present', choices=['absent', 'present']),
             type       = dict(required=False, default=None),
-            options    = dict(required=False, default=None),
-            operations = dict(required=False, default=None),
-            meta       = dict(required=False, default=None),
+            options    = dict(required=False, default=None, type='dict'),
+            operations = dict(required=False, default=None, type='list'),
+            meta       = dict(required=False, default=None, type='dict'),
             clone      = dict(required=False, default='false', type='bool'),
             clone_max  = dict(required=False, default=None, type='int'),
             disable    = dict(required=False, default='false', type='bool'),
@@ -139,8 +139,13 @@ def main():
         if module.params.has_key('operations') and module.params['operations']:
             cmd += ' %(operations)s'
             operations = []
+            assert type(module.params['operations']) is list, \
+                (module.params['operations'], type(module.params['operations']))
             for op in module.params['operations']:
-                op['options'] = ' '.join(['%s="%s"' % (key, value) for (key, value) in op['options'].items()])
+                assert type(op) is dict,  (op, type(op))
+                operation_params = op['options'].items()
+                operation_params=  ['%s="%s"' % _tuple for _tuple in operation_params ]
+                op['options'] = ' '.join(operation_params)
                 operations.append('op %(action)s %(options)s' % op)
             module.params['operations'] = ' '.join(operations)
 
@@ -188,7 +193,7 @@ def main():
     if rc is 1:
         module.fail_json(msg="Execution failed.\nCommand: `%s`\nError: %s" % (cmd, err))
 
-    module.exit_json(changed=changed)
+    module.exit_json(changed=changed, cmd=cmd)
 
 # import module snippets
 from ansible.module_utils.basic import *
