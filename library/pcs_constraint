@@ -48,7 +48,7 @@ def main():
             resource   = dict(require=False),
             node       = dict(require=False),
         ),
-        supports_check_mode=True,
+        supports_check_mode=False,
     )
 
 
@@ -100,6 +100,31 @@ def main():
             module.exit_json(
                 changed=False,
                 msg="Colocation constraint %(name)s already exists." % module.params)
+        if 'resource' not in module.params:
+            module.fail_json(msg="Invocation failed. Parameter 'resource' should be resource id")
+        if 'location' not in module.params:
+            module.fail_json(msg="Invocation failed. Parameter 'location' should be resource id")
+        score = module.params['score']
+        if module.params['options']:
+            options = module.params['options'].items()
+            options = ' '.join(['%s="%s"' % (key, value) for (key, value) in options])
+            module.params['options'] = options
+        else:
+            module.params['options'] = ''
+        if score not in ['INFINITY', '+INFINITY', '-INFINITY']:
+            try:
+                module.params['score'] = int(score)
+            except ValueError:
+                module.fail_json(msg="Invocation failed. Parameter 'score' should be integer or +_INFINITY")
+        changed = True
+        cmd = 'pcs constraint location add %(name)s %(resource)s %(node)s %(score)s'
+
+    elif module.params['command'] == 'order':
+        rc, out, err = module.run_command('pcs constraint %(command)s show --full' % module.params)
+        if out.find('(id:%(name)s)' % module.params) != -1:
+            module.exit_json(
+                changed=False,
+                msg="Colocation constraint %(name)s already exists." % module.params)
         if 'first' not in module.params:
             module.fail_json(msg="Invocation failed. Parameter 'first' should be resource id")
         if 'second' not in module.params:
@@ -117,7 +142,7 @@ def main():
             except ValueError:
                 module.fail_json(msg="Invocation failed. Parameter 'score' should be integer or +_INFINITY")
         changed = True
-        cmd = 'pcs constraint location add %(name)s %(resource)s %(node)s %(score)s'
+        cmd = 'pcs constraint order add %(name)s %(first)s %(second)s %(score)s'
 
     else:
         module.fail_json(msg="Not implemented command %(command)s" % module.params)
