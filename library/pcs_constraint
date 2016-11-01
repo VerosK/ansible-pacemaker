@@ -46,7 +46,7 @@ def main():
             first      = dict(require=False),
             second     = dict(require=False),
             resource   = dict(require=False),
-            node       = dict(require=False),
+            node       = dict(require=False, aliases=['location']),
         ),
         supports_check_mode=False,
     )
@@ -102,8 +102,8 @@ def main():
                 msg="Colocation constraint %(name)s already exists." % module.params)
         if 'resource' not in module.params:
             module.fail_json(msg="Invocation failed. Parameter 'resource' should be resource id")
-        if 'location' not in module.params:
-            module.fail_json(msg="Invocation failed. Parameter 'location' should be resource id")
+        if 'node' not in module.params:
+            module.fail_json(msg="Invocation failed. Parameter 'node' should be resource id")
         score = module.params['score']
         if module.params['options']:
             options = module.params['options'].items()
