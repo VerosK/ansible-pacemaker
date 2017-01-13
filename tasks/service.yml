@@ -8,3 +8,11 @@
    - pacemaker
    - service
 
+- name: Ensure pcsd service is started/stopped
+  service:
+    name: pcsd
+    state: stopped
+    enabled: no
+  tags:
+   - corosync
+   - service
