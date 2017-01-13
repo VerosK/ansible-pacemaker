@@ -155,7 +155,7 @@ def main():
         else:
             module.fail_json(msg="Execution failed.\nCommand: %s\nError: %s" % (cmd, err))
 
-    module.exit_json(changed=changed)
+    module.exit_json(changed=changed, cmd=cmd)
 
 # import module snippets
 from ansible.module_utils.basic import *
