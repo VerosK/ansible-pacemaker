@@ -103,7 +103,7 @@ def main():
         if 'resource' not in module.params:
             module.fail_json(msg="Invocation failed. Parameter 'resource' should be resource id")
         if 'node' not in module.params:
-            module.fail_json(msg="Invocation failed. Parameter 'node' should be resource id")
+            module.fail_json(msg="Invocation failed. Parameter 'node' should be node id")
         score = module.params['score']
         if module.params['options']:
             options = module.params['options'].items()
