@@ -1,0 +1,174 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# 2016 - Gaetan trellu (goldyfruit) - <gaetan.trellu@incloudus.com>
+# 2014 - Jonathan Araña Cruz (jonhattan) - <onhattan@faita.net>
+
+DOCUMENTATION = '''
+---
+module: pcs_stonith
+short_description: Manages I(pacemaker) cluster stonith resources with pcs tool.
+options:
+  command:
+    required: true
+    choices: [ "create" ]
+    description:
+      - Supported commands.
+  resource_id:
+    required: true
+    description:
+      - Id of the resource.
+  type:
+    required: true
+    description:
+      - Type of resource.
+  options:
+    required: false
+    description:
+      - Hash of resource options.
+  operations:
+    required: false
+    description:
+      - List of hashes of operations.
+'''
+
+# pcs_command_exists checks if command exists
+# Example: pcs_command_exists('/usr/sbin/pcs')
+def pcs_command_exists(cmd):
+    try:
+        os.stat(cmd)
+        return True
+    except:
+        return False
+
+# pcs_svc_running checks if a process is running
+# Example: pcs_svc_running('[p]acemakerd')
+def pcs_svc_running(svc):
+    try:
+        ps = subprocess.Popen(['ps', 'faux'], stdout=subprocess.PIPE)
+        grep = subprocess.Popen(['grep', svc, '-c'],
+                            stdin=ps.stdout,
+                            stdout=subprocess.PIPE)
+        ps.stdout.close()
+        output = grep.communicate()[0]
+        ps.wait()
+
+        if output == '1\n':
+            return True
+    except:
+        return False
+
+def main():
+    module = AnsibleModule(
+        argument_spec  = dict(
+            command    = dict(required=True, default=None, choices=['create', 'cleanup']),
+            name       = dict(required=False, default=None, aliases=['resource_id']),
+            state      = dict(required=False, default='present', choices=['absent', 'present']),
+            type       = dict(required=False, default=None),
+            options    = dict(required=False, default=None, type='dict'),
+            operations = dict(required=False, default=None, type='list'),
+            meta       = dict(required=False, default=None, type='dict'),
+            clone      = dict(required=False, default='false', type='bool'),
+            clone_max  = dict(required=False, default=None, type='int'),
+            disable    = dict(required=False, default='false', type='bool'),
+            master     = dict(required=False, default='false', type='bool'),
+            force      = dict(required=False, default='false', type='bool'),
+        ),
+        supports_check_mode=True,
+    )
+
+    # Check if pcs command exists.
+    if pcs_command_exists('/usr/sbin/pcs') is not True:
+        module.fail_json(msg="Unable to find the 'pcs' command...")
+
+    # Check if Pacemaker is running.
+    if pcs_svc_running('[p]acemakerd') is not True:
+        module.fail_json(msg="pacemakerd is not running...")
+
+    # Check if Corosync is running.
+    if pcs_svc_running('[c]orosync') is not True:
+        module.fail_json(msg="corosync is not running...")
+
+    # Check if pcsd is running.
+#    if pcs_svc_running('[p]csd start') is not True:
+#        module.fail_json(msg="pcsd is not running...")
+
+    # Check if resource already exists.
+    cmd = "pcs stonith show %(name)s" % module.params
+    rc, out, err = module.run_command(cmd)
+    exists = out.strip()
+
+    if module.check_mode:
+        module.exit_json(changed=True)
+
+    # Validate and process command specific params.
+    if module.params['command'] == 'create':
+        if exists:
+            module.exit_json(changed=False, msg="Resource already exists...")
+
+        if not module.params.has_key('type'):
+            module.fail_json(msg="Missing required arguments: type")
+        elif not module.params.has_key('options'):
+            module.fail_json(msg="Missing required arguments: options")
+
+        # Command template.
+        cmd = 'pcs stonith %(command)s %(resource_id)s %(type)s %(options)s'
+
+        # Process operations.
+        if module.params.has_key('operations') and module.params['operations']:
+            cmd += ' %(operations)s'
+            operations = []
+            assert type(module.params['operations']) is list, \
+                (module.params['operations'], type(module.params['operations']))
+            for op in module.params['operations']:
+                assert type(op) is dict,  (op, type(op))
+                operation_params = op['options'].items()
+                operation_params=  ['%s="%s"' % _tuple for _tuple in operation_params ]
+                op['options'] = ' '.join(operation_params)
+                operations.append('op %(action)s %(options)s' % op)
+            module.params['operations'] = ' '.join(operations)
+
+        if module.params['clone']:
+            if module.params['clone_max']:
+                cmd += ' --clone clone-max=%(clone_max)s'
+            else:
+                cmd += ' --clone'
+
+        if module.params['master']:
+                cmd += ' --master'
+
+        # Process meta.
+        if module.params.has_key('meta') and module.params['meta']:
+            cmd += ' meta %(meta)s'
+            meta = module.params['meta']
+            module.params['meta'] = ' '.join(['%s="%s"' % (key, value) for (key, value) in meta.items()])
+
+        if module.params['disable']:
+            cmd += ' --disable'
+
+        if module.params['force']:
+            cmd += ' --force'
+
+        changed=True
+    elif module.params['command'] == 'cleanup':
+        cmd = 'pcs stonith %(command)s'
+        changed=True
+
+    # Process options.
+    if module.params.has_key('options') and module.params['options']:
+        options = module.params['options']
+        options = ' '.join(['%s="%s"' % (key, value) for (key, value) in options.items()])
+        module.params['options'] = options
+
+    # Run command.
+    cmd = cmd % module.params
+    rc, out, err = module.run_command(cmd)
+    if rc is 1:
+        module.fail_json(msg="Execution failed.\nCommand: `%s`\nError: %s" % (cmd, err))
+
+    module.exit_json(changed=changed, cmd=cmd)
+
+# import module snippets
+from ansible.module_utils.basic import *
+if __name__ == '__main__':
+    main()
