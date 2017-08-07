@@ -92,7 +92,7 @@ def main():
             clone_max  = dict(required=False, default=None, type='int'),
             disable    = dict(required=False, default='false', type='bool'),
             master     = dict(required=False, default='false', type='bool'),
-            force       = dict(default='no', required=False, choices=['yes', 'no']),
+            force      = dict(required=False, default='false', type='bool'),
         ),
         supports_check_mode=True,
     )
