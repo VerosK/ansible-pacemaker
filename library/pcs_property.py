@@ -9,11 +9,15 @@ DOCUMENTATION = '''
 ---
 module: pcs_property
 short_description: Manages Pacemaker cluster properties with pcs property command.
+description:
+ - This module configures Pacemaker cluster properties.
 options:
   state:
     required: false
     default: present
     choices: [ "absent", "present" ]
+    description:
+    - Whether the property should be present or absent
   node:
     required: false
     default: no

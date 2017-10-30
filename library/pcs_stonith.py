@@ -6,8 +6,10 @@
 
 DOCUMENTATION = '''
 ---
-module: pcs_resource
-short_description: Manages I(pacemaker) cluster resources with pcs tool.
+module: pcs_stonith
+short_description: Manages I(pacemaker) cluster stonith resources with pcs tool.
+description:
+    - This module manages Pacemaker cluster stonith resources.
 options:
   command:
     required: true
@@ -30,26 +32,6 @@ options:
     required: false
     description:
       - List of hashes of operations.
-  clone:
-    required: false
-    description:
-      - Create a Pacemaker cloned resource.
-  clone_max:
-    required: false
-    description:
-      - How many copies of the resource to start.
-  disable:
-    required: false
-    description:
-      - Disable the resource right after the resource creation.
-  master:
-    required: false
-    description:
-      - Create a Pacemaker master resource.
-  force:
-    required: false
-    description:
-      - Force the Pacemaker resource creation.
 '''
 
 # pcs_command_exists checks if command exists
@@ -81,7 +63,7 @@ def pcs_svc_running(svc):
 def main():
     module = AnsibleModule(
         argument_spec  = dict(
-            command    = dict(required=True, default=None, choices=['create', 'cleanup', 'enable', 'disable']),
+            command    = dict(required=True, default=None, choices=['create', 'cleanup']),
             name       = dict(required=False, default=None, aliases=['resource_id']),
             state      = dict(required=False, default='present', choices=['absent', 'present']),
             type       = dict(required=False, default=None),
@@ -114,7 +96,7 @@ def main():
 #        module.fail_json(msg="pcsd is not running...")
 
     # Check if resource already exists.
-    cmd = "pcs resource show %(name)s" % module.params
+    cmd = "pcs stonith show %(name)s" % module.params
     rc, out, err = module.run_command(cmd)
     exists = out.strip()
 
@@ -124,8 +106,7 @@ def main():
     # Validate and process command specific params.
     if module.params['command'] == 'create':
         if exists:
-            if module.params['command'] != 'enable':
-                module.exit_json(changed=False, msg="Resource already exists...")
+            module.exit_json(changed=False, msg="Resource already exists...")
 
         if not module.params.has_key('type'):
             module.fail_json(msg="Missing required arguments: type")
@@ -133,7 +114,7 @@ def main():
             module.fail_json(msg="Missing required arguments: options")
 
         # Command template.
-        cmd = 'pcs resource %(command)s %(resource_id)s %(type)s %(options)s'
+        cmd = 'pcs stonith %(command)s %(resource_id)s %(type)s %(options)s'
 
         # Process operations.
         if module.params.has_key('operations') and module.params['operations']:
@@ -172,13 +153,7 @@ def main():
 
         changed=True
     elif module.params['command'] == 'cleanup':
-        cmd = 'pcs resource %(command)s'
-        changed=True
-    elif module.params['command'] == 'enable':
-        cmd = 'pcs resource %(command)s %(name)s'
-        changed=True
-    elif module.params['command'] == 'disable':
-        cmd = 'pcs resource %(command)s %(name)s'
+        cmd = 'pcs stonith %(command)s'
         changed=True
 
     # Process options.
