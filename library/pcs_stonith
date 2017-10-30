@@ -8,6 +8,8 @@ DOCUMENTATION = '''
 ---
 module: pcs_stonith
 short_description: Manages I(pacemaker) cluster stonith resources with pcs tool.
+description:
+    - This module manages Pacemaker cluster stonith resources.
 options:
   command:
     required: true
